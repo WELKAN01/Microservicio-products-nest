@@ -6,16 +6,16 @@ import { MicroserviceOptions, NestMicroservice, Transport } from '@nestjs/micros
 
 async function bootstrap() {
   var logger = new Logger('Bootstrap');
+  //console.log(envs.natsservers)
   //onst app = await NestFactory.create(AppModule);
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
     AppModule,
     {
-      transport: Transport.TCP,
+      //transport: Transport.TCP,
+      transport: Transport.NATS,
       options: {
-        url: `localhost:${envs.port}`,
-        port: envs.port,
-        retryAttempts: 5,
-        retryDelay: 3000,
+        //url: `localhost:${envs.port}`,
+        servers:envs.natsservers
       },
     }
   )

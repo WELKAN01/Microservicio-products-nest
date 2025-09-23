@@ -10,33 +10,39 @@ export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   //@Post()
-  @MessagePattern('create_Product') // Use MessagePattern for microservice communication
+  @MessagePattern({cmd:'create_Product'}) // Use MessagePattern for microservice communication
   create(@Payload() createProductDto: CreateProductDto) {
+    console.log(createProductDto);
     return this.productsService.create(createProductDto);
   }
 
   //@Get()
-  @MessagePattern('All_Product') // Use MessagePattern for microservice communication
+  @MessagePattern({cmd:'All_Product'}) // Use MessagePattern for microservice communication
   findAll(@Payload() PaginationDTO: PaginationDTO) {
     return  this.productsService.findAll(PaginationDTO) // Pass pagination DTO to service
   }
 
   //@Get(':id')
-  @MessagePattern('find_one_Product') // Use MessagePattern for microservice communication
+  @MessagePattern({cmd:'find_one_Product'}) // Use MessagePattern for microservice communication
   findOne(@Payload('id',ParseIntPipe) id: number) {
     return this.productsService.findOne(+id);
   }
 
   //@Patch(':id')
-  @MessagePattern('update_Product') // Use MessagePattern for microservice communication
+  @MessagePattern({cmd:'update_Product'}) // Use MessagePattern for microservice communication
   update(//@Param('id',ParseIntPipe) id: number,
          @Payload() updateProductDto: UpdateProductDto) {
     return this.productsService.update(updateProductDto.id,updateProductDto);
   }
 
   //@Delete(':id')
-  @MessagePattern('delete_Product') // Use MessagePattern for microservice communication
-  remove(@Param('id',ParseIntPipe) id: number) {
+  @MessagePattern({cmd:'delete_Product'}) // Use MessagePattern for microservice communication
+  remove(@Payload('id',ParseIntPipe) id: number) {
     return this.productsService.remove(+id);
+  }
+
+  @MessagePattern({cmd:'Validate_Product'})
+  validateProduct(@Payload() ids:number[]){
+    return this.productsService.validateProducts(ids);
   }
 }

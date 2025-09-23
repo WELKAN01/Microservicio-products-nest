@@ -4,6 +4,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { PrismaClient } from 'generated/prisma';
 import { PrismaServices } from 'src/Connection/Prisma.service';
 import { PaginationDTO } from 'src/Common/pagination.dto';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class ProductsService{
@@ -21,7 +22,7 @@ export class ProductsService{
   }
 
   async findAll(paginationDTO: PaginationDTO) {
-    const { page=1, limit=10 } = paginationDTO;
+    const { page, limit } = paginationDTO;
     const totalpages = await this.PrismaServices.product.count();
     const lastpages = Math.ceil(totalpages / limit);
     return { data: await this.PrismaServices.product.findMany({
@@ -42,9 +43,8 @@ export class ProductsService{
       where: { id: id, available: true } // Ensure the product is available,  
 
     });
-
     if(!product){
-      throw new NotFoundException({"message":"No se encontro el producto con el id: "+id, "httpCode":HttpStatus.NOT_FOUND});
+      throw new RpcException({"message":"No se encontro el producto con el id: "+id, "status":HttpStatus.NOT_FOUND});
     }
 
     return product;
@@ -52,6 +52,7 @@ export class ProductsService{
 
   update(id: number, updateProductDto: UpdateProductDto) {
     const { id: _, ...data } = updateProductDto; // Exclude id from the update data
+    console.log(data);
     return this.PrismaServices.product.update({
       where: { id: id, available: true }, // Ensure the product is available before updating
       data: data,
@@ -69,5 +70,21 @@ export class ProductsService{
     // return this.PrismaServices.product.delete({
     //   where: {id}
     // })
+  }
+
+  async validateProducts(ids:number[]){
+    ids=Array.from(new Set(ids));
+    const product = await this.PrismaServices.product.findMany({
+      where:{
+        id:{
+          in:ids
+        }
+      }
+    })
+
+    if(product.length!==ids.length){
+      throw new RpcException({"message":"Algunos productos no existen","status":HttpStatus.BAD_REQUEST});
+    }
+    return product;
   }
 }
